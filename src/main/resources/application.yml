@@ -1,0 +1,13 @@
+
+#config create table in database when run application
+spring:
+  batch:
+    jdbc:
+      initialize-schema: always
+
+#config for database
+  datasource:
+    url: jdbc:mysql://localhost:3306/springbatch?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
