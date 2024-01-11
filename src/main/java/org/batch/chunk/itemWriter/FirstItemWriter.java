@@ -11,4 +11,7 @@ public class FirstItemWriter implements ItemWriter<Long> {
         System.out.println("Inside FirstItemWriter: ");
         chunk.getItems().forEach(System.out::println);
     }
+    private void testClass() {
+
+    }
 }
