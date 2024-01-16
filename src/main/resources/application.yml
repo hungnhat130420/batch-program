@@ -4,8 +4,10 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+    job:
+      enabled: false #disable auto run job when run application
 
-#config for database
+  #config for database
   datasource:
     url: jdbc:mysql://localhost:3306/springbatch?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
     username: root
