@@ -2,12 +2,17 @@ package org.batch.service;
 
 import org.batch.params.JobParams;
 import org.springframework.batch.core.*;
+import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -16,13 +21,15 @@ import java.util.concurrent.Future;
 public class JobService {
 
     private final JobLauncher jobLauncher;
+    private final JobOperator jobOperator;
     Job firstJob;
     Job firstChunkJob;
 
-    public JobService(JobLauncher jobLauncher, Job firstJob, Job firstChunkJob) {
+    public JobService(JobLauncher jobLauncher, Job firstJob, Job firstChunkJob, JobOperator jobOperator) {
         this.jobLauncher = jobLauncher;
         this.firstJob = firstJob;
         this.firstChunkJob = firstChunkJob;
+        this.jobOperator = jobOperator;
     }
 
     @Async
@@ -59,5 +66,11 @@ public class JobService {
             e.getStackTrace();
             System.out.println("Exception while run job");
         }
+    }
+
+    @GetMapping("/stop/{jobExecutionId}")
+    public String stopJob(@PathVariable Long jobExecutionId) throws NoSuchJobExecutionException, JobExecutionNotRunningException {
+        jobOperator.stop(jobExecutionId);
+            return "Job Stopped";
     }
 }
