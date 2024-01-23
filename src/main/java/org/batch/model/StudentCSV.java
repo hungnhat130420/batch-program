@@ -1,15 +1,15 @@
 package org.batch.model;
 
-public class Student {
+public class StudentCSV {
    private Long id;
    private String firstName;
    private String lastName;
    private String email;
 
-    public Student() {
+    public StudentCSV() {
     }
 
-    public Student(Long id, String firstName, String lastName, String email) {
+    public StudentCSV(Long id, String firstName, String lastName, String email) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -50,7 +50,7 @@ public class Student {
 
     @Override
     public String toString() {
-        return "Student{" +
+        return "Student Json{" +
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +

@@ -4,7 +4,7 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
-    job:
+#    job:
 #      enabled: false #disable auto run job when run application
 
   #config for database
