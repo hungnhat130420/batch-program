@@ -71,6 +71,6 @@ public class JobService {
     @GetMapping("/stop/{jobExecutionId}")
     public String stopJob(@PathVariable Long jobExecutionId) throws NoSuchJobExecutionException, JobExecutionNotRunningException {
         jobOperator.stop(jobExecutionId);
-            return "Job Stopped";
+        return "Job Stopped";
     }
 }

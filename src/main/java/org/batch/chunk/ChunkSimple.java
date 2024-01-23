@@ -5,6 +5,7 @@ import org.batch.chunk.ItemReader.FirstItemReader;
 import org.batch.chunk.itemWriter.FirstItemWriter;
 import org.batch.model.StudentCSV;
 import org.batch.model.StudentJson;
+import org.batch.model.StudentXML;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -17,10 +18,13 @@ import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.json.JacksonJsonObjectReader;
 import org.springframework.batch.item.json.JsonItemReader;
+import org.springframework.batch.item.xml.StaxEventItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.oxm.Unmarshaller;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
@@ -53,9 +57,10 @@ public class ChunkSimple {
 //    }
     private Step firstChunkStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("firstChunkStep", jobRepository)
-                .<StudentJson, StudentJson>chunk(3, transactionManager) // write 3 items at a time to the database
+                .<StudentXML, StudentXML>chunk(3, transactionManager) // write 3 items at a time to the database
 //                .reader(flatFileItemReaderStudent()) // reader student csv
-                .reader(jsonItemReaderStudent()) // reader student json
+//                .reader(jsonItemReaderStudent()) // reader student json
+//                .reader(xmlItemReaderStudent()) // reader student xml
 //                .processor(firstItemProcessor)
                 .writer(firstItemWriter)
                 .build();
@@ -82,10 +87,23 @@ public class ChunkSimple {
         return reader;
     }
 
+    //json item reader
     public JsonItemReader<StudentJson> jsonItemReaderStudent() {
         JsonItemReader<StudentJson> reader = new JsonItemReader<>();
         reader.setResource(new ClassPathResource("student.json"));
         reader.setJsonObjectReader(new JacksonJsonObjectReader<>(StudentJson.class));
+        return reader;
+    }
+
+    // xml item reader
+    public StaxEventItemReader<StudentXML> xmlItemReaderStudent() {
+        StaxEventItemReader<StudentXML> reader = new StaxEventItemReader<>();
+        reader.setResource(new ClassPathResource("student.xml"));
+        reader.setFragmentRootElementName("student");
+        Jaxb2Marshaller unmarshaller = new Jaxb2Marshaller();
+        unmarshaller.setClassesToBeBound(StudentXML.class);
+
+        reader.setUnmarshaller(unmarshaller);
         return reader;
     }
 
