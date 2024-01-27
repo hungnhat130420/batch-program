@@ -4,6 +4,7 @@ import org.batch.chunk.ItemProcessor.FirstItemProcessor;
 import org.batch.chunk.ItemReader.FirstItemReader;
 import org.batch.chunk.itemWriter.FirstItemWriter;
 import org.batch.model.StudentCSV;
+import org.batch.model.StudentJDBC;
 import org.batch.model.StudentJson;
 import org.batch.model.StudentXML;
 import org.springframework.batch.core.Job;
@@ -12,6 +13,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
@@ -23,9 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class ChunkSimple {
@@ -38,6 +43,9 @@ public class ChunkSimple {
 
     @Autowired
     private FirstItemWriter firstItemWriter;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Bean
     protected Job firstChunkJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -57,10 +65,11 @@ public class ChunkSimple {
 //    }
     private Step firstChunkStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("firstChunkStep", jobRepository)
-                .<StudentXML, StudentXML>chunk(3, transactionManager) // write 3 items at a time to the database
+                .<StudentJDBC, StudentJDBC>chunk(3, transactionManager) // write 3 items at a time to the database
 //                .reader(flatFileItemReaderStudent()) // reader student csv
 //                .reader(jsonItemReaderStudent()) // reader student json
 //                .reader(xmlItemReaderStudent()) // reader student xml
+                .reader(jdbcCursorItemReaderStudent()) // reader student jdbc
 //                .processor(firstItemProcessor)
                 .writer(firstItemWriter)
                 .build();
@@ -106,5 +115,22 @@ public class ChunkSimple {
         reader.setUnmarshaller(unmarshaller);
         return reader;
     }
+    public JdbcCursorItemReader<StudentJDBC> jdbcCursorItemReaderStudent() {
+        JdbcCursorItemReader<StudentJDBC> reader = new JdbcCursorItemReader<>();
+         reader.setDataSource(dataSource);
+         reader.setSql("""
+                 select id, name as name, age as age from students
+                 """);
+         reader.setRowMapper((resultSet, i) -> {
+             return new StudentJDBC(resultSet.getLong("id"), resultSet.getString("name"), resultSet.getInt("age"));
+         });
+//        reader.setRowMapper(new BeanPropertyRowMapper<>(StudentJDBC.class){
+//            @Override
+//            public void setMappedClass(Class<StudentJDBC> mappedClass) {
+//                super.setMappedClass(StudentJDBC.class);
+//            }
+//        });
 
+        return reader;
+    }
 }
